@@ -6,26 +6,21 @@ import shutil
 from sklearn.model_selection import train_test_split
 warnings.filterwarnings('ignore')
 
-# 📁 KLASÖR YOLLARI
-base_data_dir = r"C:\Users\lenovo\OneDrive\Resimler\Masaüstü\beyza_derin\Brain_Cancer"
+base_data_dir = r"!!veri seti yolu!!"
 image_folders = {
     'glioma': os.path.join(base_data_dir, 'brain_glioma'),
     'meningioma': os.path.join(base_data_dir, 'brain_menin'),
     'pituitary': os.path.join(base_data_dir, 'brain_tumor')
 }
-
-# 📁 Eğitim/Test veri seti klasörleri
-base_dir = r"C:\Users\lenovo\OneDrive\Resimler\Masaüstü\beyza_derin\split_data"
+base_dir = r"!!bu dosyaların kaydedileceği yol"
 train_dir = os.path.join(base_dir, 'train')
 test_dir = os.path.join(base_dir, 'test')
 
-# 📁 Klasörleri oluştur
 for split_dir in [train_dir, test_dir]:
     os.makedirs(split_dir, exist_ok=True)
     for label in image_folders:
         os.makedirs(os.path.join(split_dir, label), exist_ok=True)
 
-# 🔀 Veriyi ayır ve kopyala
 for label, folder_path in image_folders.items():
     images = os.listdir(folder_path)
     train_imgs, test_imgs = train_test_split(images, test_size=0.3, random_state=42)
@@ -33,17 +28,12 @@ for label, folder_path in image_folders.items():
         shutil.copy(os.path.join(folder_path, img), os.path.join(train_dir, label, img))
     for img in test_imgs:
         shutil.copy(os.path.join(folder_path, img), os.path.join(test_dir, label, img))
-
-print("✅ Eğitim ve test verileri ayrıldı.")
-
-# 🔍 Etiket eşlemesi ve rastgele görseller
 labels_mapping = {
     'glioma': 'Glioma',
     'meningioma': 'Meningioma',
     'pituitary': 'Other Tumor'
 }
 
-# 📷 Rastgele 10 görsel göster
 all_images = []
 for folder in image_folders:
     label = labels_mapping[folder]
@@ -65,7 +55,6 @@ for i, (image_path, label) in enumerate(random_images):
 plt.tight_layout()
 plt.show()
 
-# 📊 Görsel sayısı grafiği
 label_counts = {v: 0 for v in labels_mapping.values()}
 for folder_key in image_folders:
     folder_label = labels_mapping[folder_key]
@@ -82,7 +71,6 @@ plt.xticks(rotation=45)
 plt.tight_layout()
 plt.show()
 
-# 📦 Ortalama dosya boyutu
 label_sizes = {v: 0 for v in labels_mapping.values()}
 label_counts = {v: 0 for v in labels_mapping.values()}
 for key, folder in image_folders.items():
@@ -110,7 +98,6 @@ plt.xticks(rotation=45)
 plt.tight_layout()
 plt.show()
 
-# 🔧 MODEL: Veri artırma, model tanımı, eğitim
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.callbacks import ReduceLROnPlateau, EarlyStopping
 from tensorflow.keras.layers import Input, Conv2D, MaxPooling2D, Flatten, Dense, Dropout, BatchNormalization, GlobalAveragePooling2D
@@ -120,13 +107,11 @@ from sklearn.utils.class_weight import compute_class_weight
 from tqdm.keras import TqdmCallback
 import numpy as np
 
-# Parametreler
 image_size = (224, 224)
 batch_size = 32
 epochs = 30
 num_classes = 3
 
-# Data generator
 train_datagen = ImageDataGenerator(rescale=1./255)
 test_datagen = ImageDataGenerator(rescale=1./255)
 
@@ -143,12 +128,10 @@ test_generator = test_datagen.flow_from_directory(
     class_mode='categorical'
 )
 
-# Class weights
 labels = train_generator.classes
 class_weights = compute_class_weight('balanced', classes=np.unique(labels), y=labels)
 class_weight_dict = dict(enumerate(class_weights))
 
-# Model mimarisi (derinleştirildi)
 inputs = Input(shape=(224, 224, 3))
 
 x = Conv2D(32, (3, 3), activation='relu', padding='same')(inputs)
@@ -191,11 +174,9 @@ model.compile(optimizer=Adam(learning_rate=0.001),
               loss='categorical_crossentropy',
               metrics=['accuracy'])
 
-# Callbacks
 reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=5, min_lr=1e-6, verbose=1)
 early_stopping = EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True, verbose=1)
 
-# Eğitim
 history = model.fit(
     train_generator,
     steps_per_epoch=train_generator.samples // batch_size,
@@ -206,7 +187,6 @@ history = model.fit(
     class_weight=class_weight_dict
 )
 
-# 📈 Eğitim süreci grafikleri
 plt.figure(figsize=(14, 5))
 plt.subplot(1, 2, 1)
 plt.plot(history.history['accuracy'], label='Eğitim Doğruluğu', marker='o')
